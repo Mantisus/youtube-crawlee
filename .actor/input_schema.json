@@ -1,0 +1,29 @@
+{
+    "title": "YouTube Crawlee",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "channelNames": {
+            "title": "List Channel Names",
+            "type": "array",
+            "description": "Channel names for extraction video stats, metadata and transcripts.",
+            "editor": "stringList",
+            "prefill": ["Apify"]
+        },
+        "maxItems": {
+            "type": "integer",
+            "editor": "number",
+            "title": "Limit search results",
+            "description": "Limits the maximum number of results, applies to each search separately.",
+            "default": 10
+        },
+        "proxySettings": {
+            "title": "Proxy configuration",
+            "type": "object",
+            "description": "Select proxies to be used by your scraper.",
+            "prefill": { "useApifyProxy": true },
+            "editor": "proxy"
+        }
+    },
+    "required": ["channelNames"]
+}

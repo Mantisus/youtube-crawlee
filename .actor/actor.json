@@ -1,0 +1,13 @@
+{
+  "actorSpecification": 1,
+  "name": "YouTube-Crawlee",
+  "title": "YouTube - Crawlee",
+  "minMemoryMbytes": 2048,
+  "description": "Scrape video stats, metadata and transcripts from videos in YouTube channels",
+  "version": "0.1",
+  "meta": {
+    "templateId": "youtube-crawlee"
+  },
+  "input": "./input_schema.json",
+  "dockerfile": "./Dockerfile"
+}
