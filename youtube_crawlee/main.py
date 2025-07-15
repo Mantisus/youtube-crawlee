@@ -3,8 +3,9 @@ from datetime import timedelta
 from apify import Actor
 
 from crawlee import ConcurrencySettings, Request
-from crawlee.crawlers import PlaywrightCrawler, PlaywrightPreNavCrawlingContext
+from crawlee.crawlers import PlaywrightCrawler
 
+from .hooks import pre_hook
 from .routes import router
 
 
@@ -30,7 +31,7 @@ async def main() -> None:
             headless=True,
             # Limit requests per crawl for testing purposes
             max_requests_per_crawl=100,
-            proxy_configuration=proxy
+            proxy_configuration=proxy,
         )
         # Set hook for prepare context before navigation on each request
         crawler.pre_navigation_hook(pre_hook)
@@ -41,18 +42,3 @@ async def main() -> None:
                 for channel in channels
             ]
         )
-
-
-async def pre_hook(context: PlaywrightPreNavCrawlingContext) -> None:
-    """Prepare context before navigation."""
-    crawler_state = await context.use_state()
-    # Check if there are cookies in the crawler state and set them for the session
-    if 'cookies' in crawler_state and context.session:
-        cookies = crawler_state['cookies']
-        # Set cookies for the session
-        context.session.cookies.set_cookies_from_playwright_format(cookies)
-    # Block requests to resources that aren't needed for parsing
-    # This is similar to the default value, but we don't block `css` as it is needed for Player loading
-    await context.block_requests(
-        url_patterns=['.webp', '.jpg', '.jpeg', '.png', '.svg', '.gif', '.woff', '.pdf', '.zip']
-    )

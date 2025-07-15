@@ -27,14 +27,15 @@ def request_domain_transform(request_param: RequestOptions) -> RequestOptions | 
 
 async def extract_transcript_url(context: PlaywrightCrawlingContext) -> str | None:
     """Extract the transcript URL from request intercepted by Playwright."""
-    transcript_url = None
+    # Create a Future to store the transcript URL
+    transcript_future: asyncio.Future[str] = asyncio.Future()
 
     # Define a handler for the transcript request
     # This will be called when the page requests the transcript
     async def handle_transcript_request(route: PlaywrightRoute, request: PlaywrightRequest) -> None:
-        nonlocal transcript_url
-
-        transcript_url = request.url
+        # Set the result of the future with the transcript URL
+        if not transcript_future.done():
+            transcript_future.set_result(request.url)
 
         await route.fulfill(status=200)
 
@@ -44,13 +45,9 @@ async def extract_transcript_url(context: PlaywrightCrawlingContext) -> str | No
     # Click the subtitles button to trigger the transcript request
     await context.page.click('.ytp-subtitles-button')
 
-    # Wait for the transcript URL to be set
-    # We use `asyncio.wait_for` to avoid waiting indefinitely
-    while not transcript_url:
-        await asyncio.sleep(1)
-        context.log.info('Waiting for transcript URL...')
-
-    return transcript_url
+    # Wait for the transcript URL to be captured
+    # The future will resolve when handle_transcript_request is called
+    return await transcript_future
 
 
 @router.default_handler
@@ -72,6 +69,7 @@ async def default_handler(context: PlaywrightCrawlingContext) -> None:
         await cookies_button.click()
 
         # Save cookies for later use with other sessions
+        # You can learn more about `SOCS` cookies from - https://policies.google.com/technologies/cookies?hl=en-US
         cookies_state = [cookie for cookie in await context.page.context.cookies() if cookie['name'] == 'SOCS']
         crawler_state = await context.use_state()
         crawler_state['cookies'] = cookies_state
